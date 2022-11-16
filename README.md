@@ -2,6 +2,7 @@
 
 This is the official implementation of the paper 'Unleashing the Power of Visual Prompting At the Pixel Level'.
 
+![](https://github.com/jywu511/Unleashing-the-Power-of-Visual-Prompting-At-the-Pixel-Level/blob/main/methods7.pdf)
 
 ## Installation
 
