@@ -28,8 +28,8 @@ import torchvision.transforms as transforms
 from torch.utils.data import DataLoader
 from torchvision.datasets import CIFAR10
 # Load the model
-from data_setting import cifar100_classes, flowers, food101, SVHN_classes
-from utils2 import refine_classname,topk, _convert_image_to_rgb, add_weight_decay, LabelSmoothingCrossEntropy, index_combine_L14
+from tools.data_setting import cifar100_classes, flowers, food101, SVHN_classes
+from tools.utils2 import refine_classname,topk, _convert_image_to_rgb, add_weight_decay, LabelSmoothingCrossEntropy, index_combine_L14
 from scipy.optimize import linear_sum_assignment
 from torchvision.transforms import Compose, Resize, CenterCrop, ToTensor, Normalize, InterpolationMode
 import argparse
