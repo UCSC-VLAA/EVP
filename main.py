@@ -14,8 +14,8 @@ import torch.nn.functional as F
 from timm.data.auto_augment import rand_augment_transform, augment_and_mix_transform, auto_augment_transform
 import argparse
 # Load the model
-from tools.data_setting import cifar100_classes, flowers, food101, SVHN_classes
-from tools.utils2 import refine_classname,topk, _convert_image_to_rgb, add_weight_decay, LabelSmoothingCrossEntropy
+from data_setting import cifar100_classes, flowers, food101, SVHN_classes
+from utils2 import refine_classname,topk, _convert_image_to_rgb, add_weight_decay, LabelSmoothingCrossEntropy
 
 from torchvision.transforms import Compose, Resize, CenterCrop, ToTensor, Normalize, InterpolationMode
 
@@ -58,7 +58,6 @@ def parse_option():
 
     # eval
     parser.add_argument('--evaluate', default=False,
-                        action="store_true",
                         help='evaluate model test set')
 
     parser.add_argument('--checkpoint', type=str,
@@ -66,17 +65,17 @@ def parse_option():
 
 
     # wandb
-    parser.add_argument('--use_wandb', default=False,
+    parser.add_argument('--use_wandb', 
                         action="store_true",
                         help='whether to use wandb')
-    parser.add_argument('project', default='visual prompting',
+    parser.add_argument('--project', type=str, default='visual prompting',
                         help = 'The name of wandb project name')
-    parser.add_argument('job_name', default='cifar100',
+    parser.add_argument('--job_name', type=str, default='cifar100',
                         help = 'The name of wandb job name')
-    parser.add_argument('entity', default = 'sjtuwjy', help='Your user name of wandb')
+    parser.add_argument('--entity',type=str,  default = 'sjtuwjy', help='Your user name of wandb')
 
     args = parser.parse_args()
-
+    return args
 
 
 
@@ -160,7 +159,7 @@ def main():
         wandb.init(project=str(project), name=str(job_name), entity=args.entity)
 
 
-    pad_length = (224 - args.image_size) / 2
+    pad_length = int((224 - args.image_size) / 2)
     pad_dim = (pad_length, pad_length, pad_length, pad_length)
 
     # Begin training
@@ -178,7 +177,7 @@ def main():
                                                       optimizer,  norm,   device)
             schedule.step()
 
-            test_acc1, test_acc5 =  eval(test_loader, prompt, text_inputs, norm,  device)
+            test_acc1, test_acc5 =  eval(test_loader, prompt,pad_dim, text_inputs, norm,  device)
             if test_acc1 > max_acc:
                 max_acc = test_acc1
                 model_state =  prompt.state_dict()
@@ -209,7 +208,7 @@ def main():
         perturbation_state['perturbation'] = state_dict['perturbation']
         prompt.load_state_dict(perturbation_state)
         test_loader = DataLoader(test_set, batch_size=args.batch_size, shuffle=False, pin_memory=True, num_workers=args.num_workers)
-        test_acc1, test_acc5 = eval(test_loader, prompt, text_inputs, norm, device)
+        test_acc1, test_acc5 = eval(test_loader, prompt, pad_dim, text_inputs, norm, device)
         print('Test acc1 is {}'.format(str(test_acc1)))
 
 
@@ -238,7 +237,7 @@ def train_with_prompt(epoch, train_loader, prompt, text_inputs, pad_dim, criteri
         images = norm(images + noise)
         images.require_grad = True
 
-        probs = prompt(images, text_inputs, train=True)
+        probs = prompt(images, text_inputs)
         loss = criterion(probs, (labels).to(device))
         top1, top5 = topk(probs, (labels).to(device), ks=(1, 5))
         all_top1.extend(top1.cpu())
@@ -278,7 +277,7 @@ def eval(test_loader, prompt, pad_dim, text_inputs, norm, device):
             noise = prompt.perturbation.to(device)
 
             images = norm(images + noise)
-            probs = prompt(images, text_inputs, train=False)
+            probs = prompt(images, text_inputs)
 
 
             top1, top5 = topk(probs, (labels).to(device), ks=(1, 5))
