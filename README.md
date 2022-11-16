@@ -27,12 +27,12 @@ See [data_preparation.md](https://github.com/jywu511/Unleashing-the-Power-of-Vis
 
 * Train the Enhanced Visual Prompting:
 ```bash
-python ...
+python main.py --evaluate False
 ```
 
 * Test the Enhanced Visual Prompting:
 ```bash
-python ```
+python main.py --evaluate True
 ```
 
 
