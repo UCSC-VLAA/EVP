@@ -20,7 +20,7 @@ pip install -r requirements.txt
 
 ## Data Preparation
 
-See [Dataset Preparation.md](https://github.com/jywu511/Unleashing-the-Power-of-Visual-Prompting-At-the-Pixel-Level/blob/main/Dataset%20Preparation.md) for detailed instructions and tips.
+See [Dataset Preparation.md](https://github.com/jywu511/Unleashing-the-Power-of-Visual-Prompting-At-the-Pixel-Level/blob/main/datasets/Dataset%20Preparation.md) for detailed instructions and tips.
 
 
 ## Train/Test for CLIP
