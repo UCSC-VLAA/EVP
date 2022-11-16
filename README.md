@@ -7,7 +7,7 @@ This is the official implementation of the paper 'Unleashing the Power of Visual
 
 Clone this repo:
 ```bash
-git clone git@github.com:jywu511/Unleashing-the-Power-of-Visual-Prompting-At-the-Pixel-Level.git
+git clone https://github.com/jywu511/Unleashing-the-Power-of-Visual-Prompting-At-the-Pixel-Level.git
 cd visual_prompting
 ```
 
