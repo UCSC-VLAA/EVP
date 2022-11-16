@@ -35,4 +35,15 @@ python main.py --evaluate False
 python main.py --evaluate True
 ```
 
+## Train/Test for non-CLIP Model
+* Train the Enhance Visual Prompting for the non-CLIP Model:
+```bash
+python main_non_CLIP.py --evaluate False
+```
+* Test the Enhance Visual Prompting for the non-CLIP Model:
+```bash
+python main_non_CLIP.py --evaluate True
+```
+
+
 
