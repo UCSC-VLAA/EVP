@@ -35,9 +35,4 @@ python ...
 python ```
 ```
 
-## Preprocess stap for section ...
-
-
-
-
 
