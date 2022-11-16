@@ -14,8 +14,8 @@ import torch.nn.functional as F
 from timm.data.auto_augment import rand_augment_transform, augment_and_mix_transform, auto_augment_transform
 import argparse
 # Load the model
-from data_setting import cifar100_classes, flowers, food101, SVHN_classes
-from utils2 import refine_classname,topk, _convert_image_to_rgb, add_weight_decay, LabelSmoothingCrossEntropy
+from tools.data_setting import  flowers, food101, SVHN_classes
+from tools.utils2 import refine_classname,topk, _convert_image_to_rgb, add_weight_decay, LabelSmoothingCrossEntropy
 import pickle 
 import torchvision.models as models
 from torchvision.transforms import Compose, Resize, CenterCrop, ToTensor, Normalize, InterpolationMode
