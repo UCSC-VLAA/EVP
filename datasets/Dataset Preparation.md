@@ -2,7 +2,7 @@
 
 
 
-Thank to Pytorch, we can use following datasets by using the Pytorch:
+Thank to Pytorch, we can use most datasets by:
 
 ```bash 
 train_set = torchvision.datasets.cifar100(root, Train = True, transforms = transforms)
