@@ -36,6 +36,13 @@ python main.py --evaluate True
 ```
 
 ## Train/Test for non-CLIP Model
+
+We propose a simple pre-processing step to match the pre-trained classes and the downstream classes. You can get the correspondence:
+```bash
+python get_index.py
+```
+
+
 * Train the Enhance Visual Prompting for the non-CLIP Model:
 ```bash
 python main_non_CLIP.py --evaluate False
