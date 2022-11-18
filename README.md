@@ -38,7 +38,7 @@ python main.py --evaluate True
 
 ## Train/Test for non-CLIP Model
 
-We propose a simple pre-processing step to match the pre-trained classes and the downstream classes. You can get the correspondence:
+We propose a simple pre-processing step to match the pre-trained classes and the downstream classes. You can get the corresponding index:
 ```bash
 python get_index.py
 ```
