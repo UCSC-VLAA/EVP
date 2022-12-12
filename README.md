@@ -1,4 +1,4 @@
-# Unleashing-the-Power-of-Visual-Prompting-At-the-Pixel-Level
+# Unleashing the Power of Visual Prompting At the Pixel Level
 
 This is the official implementation of the paper 'Unleashing the Power of Visual Prompting At the Pixel Level'.
 
