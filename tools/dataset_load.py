@@ -1,5 +1,5 @@
 import numpy as np 
-from torchvision.datasets import CIFAR100, CIFAR10, Food101, EuroSAT, SVHN, DTD, OxfordIIITPet, SUN397, 
+from torchvision.datasets import CIFAR100, CIFAR10, Food101,  SVHN, DTD, OxfordIIITPet
 import torch 
 import clip 
 from tools.data_setting import  food101, SVHN_classes
@@ -68,47 +68,6 @@ def load_dataset(args, preprocess, preprocess_test):
             [clip.tokenize(f"this is a photo of a {c}") for c in food101]
         ).to(args.device)
         text_inputs.requires_grad = False
-
-
-    
-    if dataset_name == 'EuroSAT':
-        if not args.evaluate:
-            data_set = EuroSAT(
-                args.root,
-                download=True, 
-                transform=preprocess)
-
-            # prepare the text prompt
-            classes_names = data_set.classes
-            classes_names = refine_classname(classes_names)
-            text_inputs = torch.cat(
-                [clip.tokenize(f"this is a photo of a {c}") for c in classes_names]
-            ).to(args.device)
-            text_inputs.requires_grad = False
-
-            train_set, test_set, _ = random_split(
-                dataset=data_set,
-                lengths=[13500, 5400, 8100]
-            )
-
-        else:
-            data_set = EuroSAT(
-                args.root,
-                download=True, 
-                transform=preprocess_test)
-
-            # prepare the text prompt
-            classes_names = data_set.classes
-            classes_names = refine_classname(classes_names)
-            text_inputs = torch.cat(
-                [clip.tokenize(f"this is a photo of a {c}") for c in classes_names]
-            ).to(args.device)
-            text_inputs.requires_grad = False
-
-            train_set, _, test_set = random_split(
-                dataset=data_set,
-                lengths=[13500, 5400, 8100]
-            )
 
 
 
