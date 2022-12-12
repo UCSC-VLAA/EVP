@@ -13,6 +13,8 @@ import torch.nn.functional as F
 import argparse
 from tools.data_setting import flowers, food101, SVHN_classes
 from tools.utils2 import refine_classname, topk, _convert_image_to_rgb, add_weight_decay
+from tools.dataset_load import load_dataset
+
 from torchvision.transforms import (
     Compose,
     ToTensor,
@@ -58,7 +60,7 @@ def parse_option():
     parser.add_argument(
         "--dataset",
         type=str,
-        default="cifar100",
+        default="CIFAR100",
         help="dataset")
     parser.add_argument(
         "--image_size",
@@ -166,12 +168,9 @@ def main():
             _convert_image_to_rgb,
             ToTensor(),
         ])
-    train_set = CIFAR100(root, download=True, train=True, transform=preprocess)
-    test_set = CIFAR100(
-        root,
-        download=True,
-        train=False,
-        transform=preprocess_test)
+
+    train_set, test_set, text_inputs = load_dataset(args, preprocess, preprocess_test)
+
     train_loader = DataLoader(
         train_set,
         batch_size=args.batch_size,
@@ -187,13 +186,6 @@ def main():
         num_workers=args.num_workers,
     )
 
-    # prepare the text prompt
-    classes_names = train_set.classes
-    classes_names = refine_classname(classes_names)
-    text_inputs = torch.cat(
-        [clip.tokenize(f"this is a photo of a {c}") for c in classes_names]
-    ).to(device)
-    text_inputs.requires_grad = False
 
     # Training setting
     epoch = args.epochs
