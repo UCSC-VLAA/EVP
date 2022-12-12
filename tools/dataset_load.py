@@ -1,5 +1,5 @@
 import numpy as np 
-from torchvision.datasets import CIFAR100, CIFAR10, Food101,  SVHN, DTD, OxfordIIITPet
+from torchvision.datasets import CIFAR100, CIFAR10, Food101,  SVHN,  OxfordIIITPet
 import torch 
 import clip 
 from tools.data_setting import  food101, SVHN_classes
@@ -88,28 +88,6 @@ def load_dataset(args, preprocess, preprocess_test):
         ).to(args.device)
         text_inputs.requires_grad = False
 
-
-
-
-    if dataset_name == 'DTD':
-        train_set = DTD(
-            args.root,
-            download=True, 
-            split='train', 
-            transform=preprocess)
-        test_set = DTD(
-            args.root,
-            download=True,
-            split='test',
-            transform=preprocess_test)
-
-        # prepare the text prompt
-        classes_names = train_set.classes
-        classes_names = refine_classname(classes_names)
-        text_inputs = torch.cat(
-            [clip.tokenize(f"this is a photo of a {c}") for c in classes_names]
-        ).to(args.device)
-        text_inputs.requires_grad = False
 
 
 
