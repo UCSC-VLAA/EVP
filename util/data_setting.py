@@ -1,5 +1,4 @@
-
-flowers  = [
+flowers = [
     'pink primrose',
     'hard-leaved pocket orchid',
     'canterbury bells',
@@ -211,7 +210,7 @@ food101 = [
 SVHN_classes = [
     'zero',
     'one',
-     'two',
+    'two',
     'three',
     'four',
     'five',
@@ -221,24 +220,19 @@ SVHN_classes = [
     'nine',
 ]
 
-
 Euro_classes = [
- 'Industrial Buildings',
-  'Residential Buildings',
-  'Annual Crop',
-  'Permanent Crop ',
-  'River',
-   'Sea & Lake', 
-   'Herbaceous Vegetation',
+    'Industrial Buildings',
+    'Residential Buildings',
+    'Annual Crop',
+    'Permanent Crop ',
+    'River',
+    'Sea & Lake',
+    'Herbaceous Vegetation',
     'Highway',
-    'Pasture', 
+    'Pasture',
     'Forest'
 
-
 ]
-
-
-
 
 clevr_class = [
     'three',
@@ -252,10 +246,10 @@ clevr_class = [
 ]
 
 dmlab_classes = [
-('close', 'positive'),
-('far', 'positive'),
-('very far', 'positive'),
-('close', 'negative'),
-('far', 'negative'),
-('very far', 'negative')
+    ('close', 'positive'),
+    ('far', 'positive'),
+    ('very far', 'positive'),
+    ('close', 'negative'),
+    ('far', 'negative'),
+    ('very far', 'negative')
 ]
