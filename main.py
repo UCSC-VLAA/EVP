@@ -11,11 +11,11 @@ import numpy as np
 import datetime
 import torch.nn.functional as F
 import argparse
-
+import torchvision.models as models
 from util.data_setting import flowers, food101, SVHN_classes
 from util.tool import refine_classname, topk, _convert_image_to_rgb, add_weight_decay
 from util.dataset_load import load_dataset
-
+from util.get_index import get_index
 from torchvision.transforms import (
     Compose,
     ToTensor,
@@ -49,8 +49,18 @@ def parse_option():
     # model
     parser.add_argument("--arch", type=str, default="ViT-B/32")
     parser.add_argument(
+        '--non_CLIP',
+        action='store_true',
+        help='Perform evaluation only')
+    parser.add_argument('--non_CLIP_model', type=str, default='rn50', choices=['rn50', 'instagram_resnext101_32x8d'], help='The non CLIP Model')
+    parser.add_argument('--index_path', type=str, default='argmax_rn50_cifar10.pickle',
+                        help='The path of matched index')
+    parser.add_argument(
         "--prompt_size", type=int, default=30, help="size for visual prompts"
     )
+
+
+
 
     # dataset
     parser.add_argument(
@@ -141,6 +151,17 @@ def main():
     clip_model, preprocess = clip.load(args.arch, device)
     _, preprocess_test = clip.load(args.arch, device)
 
+    # Load the non clip model
+    if args.non_CLIP:
+        _model = args.non_CLIP_model
+
+        if _model == 'rn50':
+            model = models.__dict__['resnet50'](pretrained=True).to(device)
+
+        elif _model == 'instagram_resnext101_32x8d':
+            model = torch.hub.load('facebookresearch/WSL-Images', 'resnext101_32x8d_wsl').to(device)
+
+
     # Prepare the dataset
     # Normalize the image and noise together
     normalization = preprocess.transforms[-1]
@@ -172,6 +193,11 @@ def main():
     train_set, test_set, text_inputs = load_dataset(args, preprocess, preprocess_test)
     text_inputs = text_inputs.to(device)
 
+    matching_index = []
+    if args.non_CLIP:
+        matching_index = get_index(train_set, model)
+
+
     train_loader = DataLoader(
         train_set,
         batch_size=args.batch_size,
@@ -193,7 +219,10 @@ def main():
     lr = args.learning_rate
 
     # Initialize the prompt
-    prompt = Pertubation(args.prompt_size, args.prompt_size, clip_model)
+    if not args.non_CLIP:
+        prompt = Pertubation(args.prompt_size, args.prompt_size, clip_model)
+    else:
+        prompt = Pertubation_non_CLIP(args.prompt_size, args.prompt_size, model)
     pad_length = int((224 - args.image_size) / 2)
     pad_dim = (pad_length, pad_length, pad_length, pad_length)
 
@@ -217,6 +246,7 @@ def main():
         print('Start Training')
         for e in range(epoch):
             train_loss, train_top1 = train_with_prompt(
+                args,
                 epoch=e,
                 train_loader=train_loader,
                 prompt=prompt,
@@ -226,15 +256,18 @@ def main():
                 optim=optimizer,
                 normalization=normalization,
                 device=device,
+                matching_index = matching_index
             )
             schedule.step()
             test_acc1, test_acc5 = eval(
+                args, 
                 test_loader=test_loader,
                 prompt=prompt,
                 pad_dim=pad_dim,
                 text_inputs=text_inputs,
                 normalization=normalization,
                 device=device,
+                matching_index = matching_index
             )
             if test_acc1 > max_acc:
                 max_acc = test_acc1
@@ -279,11 +312,13 @@ def main():
             text_inputs=text_inputs,
             normalization=normalization,
             device=device,
+            matching_index = matching_index
         )
         print("Test acc1 is {}".format(str(test_acc1)))
 
 
 def train_with_prompt(
+    args,
     epoch,
     train_loader,
     prompt,
@@ -293,6 +328,7 @@ def train_with_prompt(
     optim,
     normalization,
     device,
+    matching_index
 ):
     start_time = time.time()
     lr = optim.param_groups[0]["lr"]
@@ -313,6 +349,8 @@ def train_with_prompt(
         images.require_grad = True
 
         probs = prompt(images, text_inputs)
+        if args.non_CLIP:
+            probs = probs[:, matching_index]
         loss = criterion(probs, (labels).to(device))
         loss.backward()
 
@@ -341,7 +379,7 @@ def train_with_prompt(
     return np.mean(all_loss), np.mean(all_top1)
 
 
-def eval(test_loader, prompt, pad_dim, text_inputs, normalization, device):
+def eval(args, test_loader, prompt, pad_dim, text_inputs, normalization, device, matching_index):
     start_time = time.time()
     all_top1, all_top5 = [], []
     print("starting evaluation")
@@ -353,7 +391,8 @@ def eval(test_loader, prompt, pad_dim, text_inputs, normalization, device):
 
             images = normalization(images + noise)
             probs = prompt(images, text_inputs)
-
+            if args.non_CLIP:
+                probs = probs[:, matching_index]
             top1, top5 = topk(probs, (labels).to(device), ks=(1, 5))
             all_top1.extend(top1.cpu())
             all_top5.extend(top5.cpu())
@@ -392,6 +431,26 @@ class Pertubation(torch.nn.Module):
         )
 
         return probs
+
+
+class Pertubation_non_CLIP(torch.nn.Module):
+    def __init__(self, pad_h, pad_w, model):
+        super().__init__()
+        self.mask = torch.ones((3, 224, 224))
+        self.mask[:, pad_h: 224 - pad_h, pad_w: 224 - pad_w] = 0
+
+        delta = torch.zeros((3, 224, 224))
+
+        delta.require_grad = True
+        self.perturbation = torch.nn.Parameter(delta.float(), requires_grad=True)
+
+        self.model = model
+
+    def forward(self, images):
+        probs = self.model(images)
+
+        return probs
+
 
 
 if __name__ == "__main__":
