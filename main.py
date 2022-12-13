@@ -11,9 +11,10 @@ import numpy as np
 import datetime
 import torch.nn.functional as F
 import argparse
-from tools.data_setting import flowers, food101, SVHN_classes
-from tools.utils2 import refine_classname, topk, _convert_image_to_rgb, add_weight_decay
-from tools.dataset_load import load_dataset
+
+from util.data_setting import flowers, food101, SVHN_classes
+from util.tool import refine_classname, topk, _convert_image_to_rgb, add_weight_decay
+from util.dataset_load import load_dataset
 
 from torchvision.transforms import (
     Compose,
@@ -82,9 +83,9 @@ def parse_option():
 
     # eval
     parser.add_argument(
-        "--evaluate",
-        default=False,
-        help="evaluate model test set")
+        '--evaluate',
+        action='store_true',
+        help='Perform evaluation only')
 
     parser.add_argument(
         "--checkpoint", type=str, help="The checkpoint of trained model"
@@ -141,7 +142,6 @@ def main():
     _, preprocess_test = clip.load(args.arch, device)
 
     # Prepare the dataset
-    root = args.root
     # Normalize the image and noise together
     normalization = preprocess.transforms[-1]
     preprocess_test.transforms.pop(-1)
@@ -170,6 +170,7 @@ def main():
         ])
 
     train_set, test_set, text_inputs = load_dataset(args, preprocess, preprocess_test)
+    text_inputs = text_inputs.to(device)
 
     train_loader = DataLoader(
         train_set,
@@ -213,7 +214,7 @@ def main():
     if not args.evaluate:
         if log_wandb:
             wandb.watch(prompt)
-
+        print('Start Training')
         for e in range(epoch):
             train_loss, train_top1 = train_with_prompt(
                 epoch=e,
@@ -226,9 +227,7 @@ def main():
                 normalization=normalization,
                 device=device,
             )
-
             schedule.step()
-
             test_acc1, test_acc5 = eval(
                 test_loader=test_loader,
                 prompt=prompt,
@@ -237,7 +236,6 @@ def main():
                 normalization=normalization,
                 device=device,
             )
-
             if test_acc1 > max_acc:
                 max_acc = test_acc1
                 model_state = prompt.state_dict()
@@ -247,7 +245,6 @@ def main():
                     os.makedirs(save_path)
                 torch.save(save_dict, save_path + "/checkpoint_best.pth")
             print("max acc is {}".format(str(max_acc)))
-
             if log_wandb:
                 log_stauts = {
                     "lr": optimizer.param_groups[0]["lr"],
@@ -260,6 +257,7 @@ def main():
 
     # Begin testing
     else:
+        print('Start Evaluating')
         # Load the model
         checkpoint = args.checkpoint
         state_dict = torch.load(checkpoint, map_location="cpu")
@@ -274,7 +272,6 @@ def main():
             pin_memory=True,
             num_workers=args.num_workers,
         )
-
         test_acc1, test_acc5 = eval(
             test_loader=test_loader,
             prompt=prompt,
@@ -283,7 +280,6 @@ def main():
             normalization=normalization,
             device=device,
         )
-
         print("Test acc1 is {}".format(str(test_acc1)))
 
 
@@ -312,6 +308,7 @@ def train_with_prompt(
         noise = noise.repeat(images.size(0), 1, 1, 1)
         noise.retain_grad()
 
+        # Normalize the image and noise
         images = normalization(images + noise)
         images.require_grad = True
 
