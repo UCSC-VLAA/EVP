@@ -1,10 +1,11 @@
-import numpy as np 
-from torchvision.datasets import CIFAR100, CIFAR10,  SVHN#,  OxfordIIITPet, Food101
-import torch 
-import clip 
-from util.data_setting import  food101, SVHN_classes
+import numpy as np
+from torchvision.datasets import CIFAR100, CIFAR10, SVHN  # ,  OxfordIIITPet, Food101
+import torch
+import clip
+from util.data_setting import food101, SVHN_classes
 from util.tool import refine_classname, topk, _convert_image_to_rgb, add_weight_decay
-from torch.utils.data import random_split
+
+
 
 def load_dataset(args, preprocess, preprocess_test):
     dataset_name = args.dataset
@@ -12,8 +13,8 @@ def load_dataset(args, preprocess, preprocess_test):
     if dataset_name == 'CIFAR100':
         train_set = CIFAR100(
             args.root,
-            download=True, 
-            train=True, 
+            download=True,
+            train=True,
             transform=preprocess)
         test_set = CIFAR100(
             args.root,
@@ -29,12 +30,11 @@ def load_dataset(args, preprocess, preprocess_test):
         )
         text_inputs.requires_grad = False
 
-
     if dataset_name == 'CIFAR10':
         train_set = CIFAR10(
             args.root,
-            download=True, 
-            train=True, 
+            download=True,
+            train=True,
             transform=preprocess)
         test_set = CIFAR10(
             args.root,
@@ -50,13 +50,11 @@ def load_dataset(args, preprocess, preprocess_test):
         )
         text_inputs.requires_grad = False
 
-
-
     if dataset_name == 'Food101':
         train_set = Food101(
             args.root,
-            download=True, 
-            split='train', 
+            download=True,
+            split='train',
             transform=preprocess)
         test_set = Food101(
             args.root,
@@ -69,13 +67,11 @@ def load_dataset(args, preprocess, preprocess_test):
         )
         text_inputs.requires_grad = False
 
-
-
     if dataset_name == 'SVHN':
         train_set = SVHN(
             args.root,
-            download=True, 
-            split='train', 
+            download=True,
+            split='train',
             transform=preprocess)
         test_set = SVHN(
             args.root,
@@ -88,14 +84,11 @@ def load_dataset(args, preprocess, preprocess_test):
         )
         text_inputs.requires_grad = False
 
-
-
-
     if dataset_name == 'Pets':
         train_set = OxfordIIITPet(
             args.root,
-            download=True, 
-            split='trainval', 
+            download=True,
+            split='trainval',
             transform=preprocess)
         test_set = OxfordIIITPet(
             args.root,
@@ -111,9 +104,4 @@ def load_dataset(args, preprocess, preprocess_test):
         )
         text_inputs.requires_grad = False
 
-
-
-
     return train_set, test_set, text_inputs
-
-
