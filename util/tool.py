@@ -1,4 +1,5 @@
-from pathlib import Path
+import torch.nn.functional as F
+import torch.nn as nn
 import torch
 
 
@@ -30,11 +31,6 @@ def add_weight_decay(model, weight_decay=1e-5, skip_list=()):
         {'params': no_decay, 'weight_decay': 0.}]
 
 
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-
-
 def refine_classname(class_names):
     for i, class_name in enumerate(class_names):
         class_names[i] = class_name.lower().replace('_', ' ').replace('-', ' ')
@@ -43,13 +39,29 @@ def refine_classname(class_names):
 
 def refine_imagenet(class_names):
     for i, class_name in enumerate(class_names):
-        class_names[i] = str(list(class_name)).replace('[', '').replace(']', '').replace('\'', '')
+        class_names[i] = str(
+            list(class_name)).replace(
+            '[',
+            '').replace(
+            ']',
+            '').replace(
+                '\'',
+            '')
     return class_names
 
 
 def refine_imagenet2(class_names):
     for i, class_name in enumerate(class_names):
-        class_names[i] = str(list(class_name)).replace('[', '').replace(']', '').replace('\'', '').replace(',', ', a')
+        class_names[i] = str(
+            list(class_name)).replace(
+            '[',
+            '').replace(
+            ']',
+            '').replace(
+                '\'',
+                '').replace(
+                    ',',
+            ', a')
     return class_names
 
 
