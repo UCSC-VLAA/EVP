@@ -19,7 +19,6 @@ def add_weight_decay(model, weight_decay=1e-5, skip_list=()):
     decay = []
     no_decay = []
     for name, param in model.named_parameters():
-        if 'clip' not in name:
             if not param.requires_grad:
                 continue  # frozen weights
             if name in skip_list:

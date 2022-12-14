@@ -210,7 +210,7 @@ def main():
 
     # Load the non clip model
     if args.non_CLIP:
-        print('use resenet or resnext')
+        print('use model:' , args.non_CLIP_model)
         _model = args.non_CLIP_model
 
         if _model == 'rn50':
@@ -289,6 +289,7 @@ def main():
     # Optimizer setting
     prompt.model.requires_grad_(False)
     param_groups = add_weight_decay(prompt, 0.0, skip_list=("perturbation"))
+    print(param_groups)
     optimizer = torch.optim.SGD(param_groups, lr=lr)
     criterion = torch.nn.CrossEntropyLoss()
     schedule = torch.optim.lr_scheduler.CosineAnnealingLR(
