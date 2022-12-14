@@ -9,14 +9,17 @@ This is the official implementation of the paper 'Unleashing the Power of Visual
 Clone this repo:
 
 ```bash
-git clone https://github.com/jywu511/Unleashing-the-Power-of-Visual-Prompting-At-the-Pixel-Level.git
-cd visual_prompting
+git clone https://github.com/UCSC-VLAA/EVP
+cd EVP
 ```
 
-Then Install dependencies by:
+Our code is built on:
 
 torch>=1.10.1
 torchvision>=0.11.2
+
+
+Then install dependencies by:
 
 ```bash
 pip install -r requirments.txt
@@ -29,9 +32,9 @@ pip install git+https://github.com/openai/CLIP.git
 See [Dataset Preparation.md](https://github.com/jywu511/Unleashing-the-Power-of-Visual-Prompting-At-the-Pixel-Level/blob/main/datasets/Dataset%20Preparation.md)
 for detailed instructions and tips.
 
-## Train/Test for CLIP
+## Train/Test for CLIP Model
 
-* Train the Enhanced Visual Prompting:
+* Train the Enhanced Visual Prompting on CIFAR100:
 
 ```bash
 python main.py 
@@ -48,21 +51,36 @@ python main.py --evaluate
 We propose a simple pre-processing step to match the pre-trained classes and the downstream classes. You can get the
 corresponding index:
 
-```bash
-python get_index.py
-```
+[//]: # (```bash)
+
+[//]: # (python get_index.py)
+
+[//]: # (```)
 
 * Train the Enhance Visual Prompting for the non-CLIP Model:
 
 ```bash
-python main_non_CLIP.py --evaluate False
+python main.py --non_CLIP
 ```
 
 * Test the Enhance Visual Prompting for the non-CLIP Model:
 
 ```bash
-python main_non_CLIP.py --evaluate True
+python main_non_CLIP.py --non_CLIP --evaluate 
 ```
+
+
+## Contact
+
+Junyang Wu
+- email: 
+
+
+Xianhang Li
+- email: xli421@ucsc.edu
+
+
+If you have any question about the code and data, please contact us directly.
 
 
 
