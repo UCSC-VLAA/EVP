@@ -23,6 +23,56 @@ from torchvision.transforms import (
 )
 
 
+class Pertubation(torch.nn.Module):
+    def __init__(self, pad_h, pad_w, clip_model):
+        super().__init__()
+        self.mask = torch.ones((3, 224, 224))
+        self.mask[:, pad_h: 224 - pad_h, pad_w: 224 - pad_w] = 0
+
+        delta = torch.zeros((3, 224, 224))
+        delta.require_grad = True
+
+        self.perturbation = torch.nn.Parameter(
+            delta.float(), requires_grad=True)
+        self.model = clip_model
+
+    def forward(self, images, text_inputs):
+        image_features = self.model.encode_image(images)
+        text_features = self.model.encode_text(text_inputs)
+        norm_image_features = image_features / \
+            image_features.norm(dim=-1, keepdim=True)
+        norm_text_features = text_features / \
+            text_features.norm(dim=-1, keepdim=True)
+
+        probs = (
+            self.model.logit_scale.exp()
+            * norm_image_features
+            @ norm_text_features.T
+        )
+
+        return probs
+
+
+class Pertubation_non_CLIP(torch.nn.Module):
+    def __init__(self, pad_h, pad_w, model):
+        super().__init__()
+        self.mask = torch.ones((3, 224, 224))
+        self.mask[:, pad_h: 224 - pad_h, pad_w: 224 - pad_w] = 0
+
+        delta = torch.zeros((3, 224, 224))
+
+        delta.require_grad = True
+        self.perturbation = torch.nn.Parameter(
+            delta.float(), requires_grad=True)
+
+        self.model = model
+
+    def forward(self, images, text_inputs=None):
+        probs = self.model(images)
+
+        return probs
+
+
 def parse_option():
     parser = argparse.ArgumentParser("Visual Prompting for CLIP")
 
@@ -52,15 +102,22 @@ def parse_option():
         '--non_CLIP',
         action='store_true',
         help='Perform evaluation only')
-    parser.add_argument('--non_CLIP_model', type=str, default='rn50', choices=['rn50', 'instagram_resnext101_32x8d'], help='The non CLIP Model')
-    parser.add_argument('--index_path', type=str, default='argmax_rn50_cifar10.pickle',
-                        help='The path of matched index')
+    parser.add_argument(
+        '--non_CLIP_model',
+        type=str,
+        default='rn50',
+        choices=[
+            'rn50',
+            'instagram_resnext101_32x8d'],
+        help='The non CLIP Model')
+    parser.add_argument(
+        '--index_path',
+        type=str,
+        default='argmax_rn50_cifar10.pickle',
+        help='The path of matched index')
     parser.add_argument(
         "--prompt_size", type=int, default=30, help="size for visual prompts"
     )
-
-
-
 
     # dataset
     parser.add_argument(
@@ -128,7 +185,7 @@ def parse_option():
 def main():
     args = parse_option()
 
-    device = "cuda:2" if torch.cuda.is_available() else "cpu"
+    device = "cuda:0" if torch.cuda.is_available() else "cpu"
 
     torch.manual_seed(args.seed)
     torch.cuda.manual_seed(args.seed)
@@ -153,14 +210,16 @@ def main():
 
     # Load the non clip model
     if args.non_CLIP:
+        print('use resenet or resnext')
         _model = args.non_CLIP_model
 
         if _model == 'rn50':
             model = models.__dict__['resnet50'](pretrained=True).to(device)
 
         elif _model == 'instagram_resnext101_32x8d':
-            model = torch.hub.load('facebookresearch/WSL-Images', 'resnext101_32x8d_wsl').to(device)
-
+            model = torch.hub.load(
+                'facebookresearch/WSL-Images',
+                'resnext101_32x8d_wsl').to(device)
 
     # Prepare the dataset
     # Normalize the image and noise together
@@ -190,13 +249,14 @@ def main():
             ToTensor(),
         ])
 
-    train_set, test_set, text_inputs = load_dataset(args, preprocess, preprocess_test)
+    train_set, test_set, text_inputs = load_dataset(
+        args, preprocess, preprocess_test)
     text_inputs = text_inputs.to(device)
 
     matching_index = []
     if args.non_CLIP:
-        matching_index = get_index(train_set, model)
-
+        print('start matching the index')
+        matching_index = get_index(train_set, model, device)
 
     train_loader = DataLoader(
         train_set,
@@ -213,7 +273,6 @@ def main():
         num_workers=args.num_workers,
     )
 
-
     # Training setting
     epoch = args.epochs
     lr = args.learning_rate
@@ -222,16 +281,13 @@ def main():
     if not args.non_CLIP:
         prompt = Pertubation(args.prompt_size, args.prompt_size, clip_model)
     else:
-        prompt = Pertubation_non_CLIP(args.prompt_size, args.prompt_size, model)
+        prompt = Pertubation_non_CLIP(
+            args.prompt_size, args.prompt_size, model)
     pad_length = int((224 - args.image_size) / 2)
     pad_dim = (pad_length, pad_length, pad_length, pad_length)
 
     # Optimizer setting
-    for name, p in prompt.named_parameters():
-        if "clip" in name:
-            p.requires_grad = False
-        else:
-            p.requires_grad = True
+    prompt.model.requires_grad_(False)
     param_groups = add_weight_decay(prompt, 0.0, skip_list=("perturbation"))
     optimizer = torch.optim.SGD(param_groups, lr=lr)
     criterion = torch.nn.CrossEntropyLoss()
@@ -256,18 +312,18 @@ def main():
                 optim=optimizer,
                 normalization=normalization,
                 device=device,
-                matching_index = matching_index
+                matching_index=matching_index
             )
             schedule.step()
             test_acc1, test_acc5 = eval(
-                args, 
+                args,
                 test_loader=test_loader,
                 prompt=prompt,
                 pad_dim=pad_dim,
                 text_inputs=text_inputs,
                 normalization=normalization,
                 device=device,
-                matching_index = matching_index
+                matching_index=matching_index
             )
             if test_acc1 > max_acc:
                 max_acc = test_acc1
@@ -312,7 +368,7 @@ def main():
             text_inputs=text_inputs,
             normalization=normalization,
             device=device,
-            matching_index = matching_index
+            matching_index=matching_index
         )
         print("Test acc1 is {}".format(str(test_acc1)))
 
@@ -379,7 +435,15 @@ def train_with_prompt(
     return np.mean(all_loss), np.mean(all_top1)
 
 
-def eval(args, test_loader, prompt, pad_dim, text_inputs, normalization, device, matching_index):
+def eval(
+        args,
+        test_loader,
+        prompt,
+        pad_dim,
+        text_inputs,
+        normalization,
+        device,
+        matching_index):
     start_time = time.time()
     all_top1, all_top5 = [], []
     print("starting evaluation")
@@ -401,56 +465,6 @@ def eval(args, test_loader, prompt, pad_dim, text_inputs, normalization, device,
     print("Testing time {}".format(total_time_str))
     print(f"top1 {np.mean(all_top1):.2%}, " f"top5 {np.mean(all_top5):.2%}")
     return np.mean(all_top1), np.mean(all_top5)
-
-
-class Pertubation(torch.nn.Module):
-    def __init__(self, pad_h, pad_w, clip_model):
-        super().__init__()
-        self.mask = torch.ones((3, 224, 224))
-        self.mask[:, pad_h: 224 - pad_h, pad_w: 224 - pad_w] = 0
-
-        delta = torch.zeros((3, 224, 224))
-        delta.require_grad = True
-
-        self.perturbation = torch.nn.Parameter(
-            delta.float(), requires_grad=True)
-        self.clip_model = clip_model
-
-    def forward(self, images, text_inputs):
-        image_features = self.clip_model.encode_image(images)
-        text_features = self.clip_model.encode_text(text_inputs)
-        norm_image_features = image_features / \
-            image_features.norm(dim=-1, keepdim=True)
-        norm_text_features = text_features / \
-            text_features.norm(dim=-1, keepdim=True)
-
-        probs = (
-            self.clip_model.logit_scale.exp()
-            * norm_image_features
-            @ norm_text_features.T
-        )
-
-        return probs
-
-
-class Pertubation_non_CLIP(torch.nn.Module):
-    def __init__(self, pad_h, pad_w, model):
-        super().__init__()
-        self.mask = torch.ones((3, 224, 224))
-        self.mask[:, pad_h: 224 - pad_h, pad_w: 224 - pad_w] = 0
-
-        delta = torch.zeros((3, 224, 224))
-
-        delta.require_grad = True
-        self.perturbation = torch.nn.Parameter(delta.float(), requires_grad=True)
-
-        self.model = model
-
-    def forward(self, images):
-        probs = self.model(images)
-
-        return probs
-
 
 
 if __name__ == "__main__":
