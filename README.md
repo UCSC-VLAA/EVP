@@ -48,32 +48,25 @@ python main.py --evaluate
 
 ## Train/Test for non-CLIP Model
 
-We propose a simple pre-processing step to match the pre-trained classes and the downstream classes. You can get the
-corresponding index:
+We propose a simple pre-processing step to match the pre-trained classes and the downstream classes for non-CLIP model. 
 
-[//]: # (```bash)
-
-[//]: # (python get_index.py)
-
-[//]: # (```)
-
-* Train the Enhance Visual Prompting for the non-CLIP Model:
+* Train the Enhanced Visual Prompting for the non-CLIP Model:
 
 ```bash
 python main.py --non_CLIP
 ```
 
-* Test the Enhance Visual Prompting for the non-CLIP Model:
+* Test the Enhanced Visual Prompting for the non-CLIP Model:
 
 ```bash
-python main_non_CLIP.py --non_CLIP --evaluate 
+python main.py --non_CLIP --evaluate 
 ```
 
 
 ## Contact
 
 Junyang Wu
-- email: 
+- email: SJTUwjy@sjtu.edu.cn
 
 
 Xianhang Li
