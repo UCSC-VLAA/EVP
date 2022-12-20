@@ -12,7 +12,9 @@ def get_index(train_set, model, device):
         batch_size=1,
         shuffle=False,
         pin_memory=True,
-        num_workers=4)
+        num_workers=12)
+
+    #print(len(train_set))
 
     # append every
     num_of_classes = len(train_set.classes)
@@ -23,25 +25,19 @@ def get_index(train_set, model, device):
 
     index = []
     with torch.no_grad():
+
         for i in range(0, num_of_classes):
             print('now is on the class ', i)
             each_class_images = d[i]
+            
             arg_index = []
-            for each_image in each_class_images:
-                images = each_image.to(device)
-                probs = model(images).cpu()
-                arg_index.append(int(torch.argmax(probs, dim=-1)))
-            arg_index = np.array(arg_index)
-            #arg_index = map(float, arg_index)
-            counts = np.bincount(arg_index)
+            for j in range(int(len(train_set) / num_of_classes)):
+                images = each_class_images[j].to(device)
+                probs = model(images)
+                arg_index.append(torch.argmax(probs, dim=-1))
+            arg_index = torch.tensor(arg_index)
+            index.append(torch.mode(arg_index, -1))
 
-            a, idx1 = torch.sort(torch.tensor(counts), descending=True)
-
-            for j in range(len(idx1)):
-                if idx1[j] not in index:
-                    index.append(idx1[j])
-                    break
-                else:
-                    continue
-
+    
+    d = []
     return index
