@@ -29,7 +29,7 @@ pip install git+https://github.com/openai/CLIP.git
 
 ## Data Preparation
 
-See [Dataset.md](https://github.com/jywu511/Unleashing-the-Power-of-Visual-Prompting-At-the-Pixel-Level/blob/main/datasets/Dataset%20Preparation.md)
+See [DATASET.md](https://github.com/UCSC-VLAA/EVP/blob/main/DATASET.md)
 for detailed instructions and tips.
 
 ## Train/Test for CLIP Model
