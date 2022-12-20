@@ -12,9 +12,7 @@ import datetime
 import torch.nn.functional as F
 import argparse
 import torchvision.models as models
-from util.data_setting import flowers, food101, SVHN_classes
 from util.tool import refine_classname, topk, _convert_image_to_rgb, add_weight_decay
-from util.dataset_load import load_dataset
 from util.get_index import get_index
 from torchvision.transforms import (
     Compose,
@@ -249,8 +247,23 @@ def main():
             ToTensor(),
         ])
 
-    train_set, test_set, text_inputs = load_dataset(
-        args, preprocess, preprocess_test)
+    train_set = CIFAR100(
+        args.root,
+        download=True,
+        train=True,
+        transform=preprocess)
+    test_set = CIFAR100(
+        args.root,
+        download=True,
+        train=False,
+        transform=preprocess_test)
+    
+    classes_names = train_set.classes
+    classes_names = refine_classname(classes_names)
+    text_inputs = torch.cat(
+        [clip.tokenize(f"this is a photo of a {c}") for c in classes_names]
+    )
+    text_inputs.requires_grad = False  
     text_inputs = text_inputs.to(device)
 
     matching_index = []
