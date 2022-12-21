@@ -1,6 +1,6 @@
 # Unleashing the Power of Visual Prompting At the Pixel Level
 
-This is the official implementation of the paper 'Unleashing the Power of Visual Prompting At the Pixel Level'.
+This is the official implementation of the paper [Unleashing the Power of Visual Prompting At the Pixel Level](https://arxiv.org/abs/2212.10556).
 
 ![](https://github.com/jywu511/Unleashing-the-Power-of-Visual-Prompting-At-the-Pixel-Level/blob/main/methods.png)
 
