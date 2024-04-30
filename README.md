@@ -66,11 +66,11 @@ python main.py --non_CLIP --evaluate
 ## Citation
 
 ```
-@article{wu2022evp,
+@article{wu2024evp,
   title   = {Unleashing the Power of Visual Prompting At the Pixel Level}, 
   author  = {Wu, Junyang and Li, Xianhang and Wei, Chen and Wang, Huiyu and Yuille, Alan and Zhou, Yuyin and Xie, Cihang},
-  journal = {arXiv preprint arXiv:2212.10556},
-  year    = {2022},
+  journal = {TMLR},
+  year    = {2024},
 }
 ```
 
