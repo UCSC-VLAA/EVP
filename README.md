@@ -70,7 +70,7 @@ python main.py --non_CLIP --evaluate
   title   = {Unleashing the Power of Visual Prompting At the Pixel Level}, 
   author  = {Wu, Junyang and Li, Xianhang and Wei, Chen and Wang, Huiyu and Yuille, Alan and Zhou, Yuyin and Xie, Cihang},
   journal = {TMLR},
-  year    = {2024},
+  year    = {2024}
 }
 ```
 
